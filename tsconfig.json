@@ -4,6 +4,16 @@
     "baseUrl": "src",                              
     "paths": {
       "@/*": ["*"]
-    },                                     
-  }
+    },                             
+    "target": "es2019",                          
+    "module": "commonjs",    
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "outDir": "dist",
+    "sourceMap": true,
+    "allowJs": true,
+    "resolveJsonModule": true
+  },
+  "include": ["src", "tests"],
+  "exclude": []
 }
