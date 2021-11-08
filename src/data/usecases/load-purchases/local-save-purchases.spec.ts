@@ -1,14 +1,14 @@
 import { CacheStoreSpy, mockPurchases } from "@/data/tests";
-import { LocalSavePurchases } from "@/data/usecases";
+import { LocalLoadPurchases } from "@/data/usecases";
 
 type SutTypes = {
-  sut: LocalSavePurchases;
+  sut: LocalLoadPurchases;
   cacheStore: CacheStoreSpy;
 };
 //Factory
 const makeSut = (timestamp = new Date()): SutTypes => {
   const cacheStore = new CacheStoreSpy();
-  const sut = new LocalSavePurchases(cacheStore, timestamp);
+  const sut = new LocalLoadPurchases(cacheStore, timestamp);
 
   return {
     cacheStore,
@@ -16,7 +16,7 @@ const makeSut = (timestamp = new Date()): SutTypes => {
   };
 };
 
-describe("LocalSavePurchases", () => {
+describe("LocalLoadPurchases", () => {
   test("Should not delete or insert cache on sut.init", () => {
     const { cacheStore } = makeSut();
     expect(cacheStore.actions).toEqual([]);
@@ -35,7 +35,7 @@ describe("LocalSavePurchases", () => {
   test("Should not delete cache on sut.init", () => {
     const timestamp = new Date();
     const { cacheStore } = makeSut(timestamp);
-    new LocalSavePurchases(cacheStore, timestamp);
+    new LocalLoadPurchases(cacheStore, timestamp);
   });
 
   test("Should not insert new cache if delete fails", async () => {
