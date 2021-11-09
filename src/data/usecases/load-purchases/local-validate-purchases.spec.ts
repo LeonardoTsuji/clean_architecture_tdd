@@ -20,76 +20,65 @@ const makeSut = (timestamp = new Date()): SutTypes => {
   };
 };
 
-describe("LocalLoadPurchases", () => {
+describe("LocalValidatePurchases", () => {
   test("Should not delete or insert cache on sut.init", () => {
     const { cacheStore } = makeSut();
     expect(cacheStore.actions).toEqual([]);
   });
 
-  test("Should return empty list if load fails", async () => {
+  test("Should delete cache if load fails", () => {
     const { cacheStore, sut } = makeSut();
     cacheStore.simulateFetchError();
-    const purchases = await sut.loadAll();
-    expect(cacheStore.actions).toEqual([CacheStoreSpy.Action.fetch]);
-    expect(purchases).toEqual([]);
+    sut.validate();
+    expect(cacheStore.actions).toEqual([
+      CacheStoreSpy.Action.fetch,
+      CacheStoreSpy.Action.delete,
+    ]);
+    expect(cacheStore.deleteKey).toBe("purchases");
   });
 
-  test("Should return a list of purchases if cache is not expired", async () => {
+  test("Should has no side effect if load succeeds", () => {
     const currentDate = new Date();
     const timestamp = getCacheExpirationDate(currentDate);
     timestamp.setSeconds(timestamp.getSeconds() + 1);
     const { cacheStore, sut } = makeSut(currentDate);
     cacheStore.fetchResult = {
       timestamp,
-      value: mockPurchases(),
     };
-    const purchases = await sut.loadAll();
+    sut.validate();
     expect(cacheStore.actions).toEqual([CacheStoreSpy.Action.fetch]);
     expect(cacheStore.fetchKey).toBe("purchases");
-    expect(purchases).toEqual(cacheStore.fetchResult.value);
   });
 
-  test("Should return an empty list if cache is expired", async () => {
-    const currentDate = new Date();
-    const timestamp = getCacheExpirationDate(currentDate);
-    timestamp.setSeconds(timestamp.getSeconds() - 1);
-    const { cacheStore, sut } = makeSut(currentDate);
-    cacheStore.fetchResult = {
-      timestamp,
-      value: mockPurchases(),
-    };
-    const purchases = await sut.loadAll();
-    expect(cacheStore.actions).toEqual([CacheStoreSpy.Action.fetch]);
-    expect(cacheStore.fetchKey).toBe("purchases");
-    expect(purchases).toEqual([]);
-  });
-
-  test("Should return an empty list if cache is on expiration date", async () => {
+  test("Should delete cache if its expired", () => {
     const currentDate = new Date();
     const timestamp = getCacheExpirationDate(currentDate);
     const { cacheStore, sut } = makeSut(currentDate);
     cacheStore.fetchResult = {
       timestamp,
-      value: mockPurchases(),
     };
-    const purchases = await sut.loadAll();
-    expect(cacheStore.actions).toEqual([CacheStoreSpy.Action.fetch]);
+    sut.validate();
+    expect(cacheStore.actions).toEqual([
+      CacheStoreSpy.Action.fetch,
+      CacheStoreSpy.Action.delete,
+    ]);
     expect(cacheStore.fetchKey).toBe("purchases");
-    expect(purchases).toEqual([]);
+    expect(cacheStore.deleteKey).toBe("purchases");
   });
 
-  test("Should return a list of purchases if cache is empty", async () => {
+  test("Should delete cache if its on expiration date", () => {
     const currentDate = new Date();
     const timestamp = getCacheExpirationDate(currentDate);
-    timestamp.setSeconds(timestamp.getSeconds() + 1);
     const { cacheStore, sut } = makeSut(currentDate);
     cacheStore.fetchResult = {
       timestamp,
-      value: [],
     };
-    const purchases = await sut.loadAll();
-    expect(cacheStore.actions).toEqual([CacheStoreSpy.Action.fetch]);
+    sut.validate();
+    expect(cacheStore.actions).toEqual([
+      CacheStoreSpy.Action.fetch,
+      CacheStoreSpy.Action.delete,
+    ]);
     expect(cacheStore.fetchKey).toBe("purchases");
-    expect(purchases).toEqual([]);
+    expect(cacheStore.deleteKey).toBe("purchases");
   });
 });
